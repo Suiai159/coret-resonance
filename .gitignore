@@ -1,0 +1,33 @@
+# Python runtime / local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Packaged application and build outputs (rebuild with build-linux.sh)
+/CoreT-Desktop
+/_internal/
+/.packaging/
+/build/
+/dist/
+*.spec
+
+# Captures, local settings, and generated verification reports
+/user-data/
+/outputs/
+*.coret
+*.csv
+*.log
+/QC_UPDATE.json
+
+# Preserve historical backups locally, never add duplicate source trees
+/.before-*/
+/.incoming-*/
+/.failed-*/
+
+# Agent / machine-local configuration and secrets
+/.agents/
+/.codex/
+.env
+.env.*

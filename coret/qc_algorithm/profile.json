@@ -1,0 +1,394 @@
+{
+  "version": "coret-range-qc-0.2.0-experimental",
+  "status": "EXPERIMENTAL_NOT_PRODUCTION_VALIDATED",
+  "amplitude_unit": "mV",
+  "strength_estimation": false,
+  "policy": {
+    "target_hz": 4.0,
+    "bin_s": 0.001,
+    "local_noise_bins": 251,
+    "noise_mad_floor_mv": 1.0,
+    "score_threshold": 6.0,
+    "score_prominence": 3.0,
+    "refractory_s": 0.12,
+    "onset_lookback_s": 0.04,
+    "onset_relative_height": 0.5,
+    "event_pre_s": 0.01,
+    "event_post_s": 0.07,
+    "event_floor_mv": 32.34375,
+    "interval_tolerance_s": 0.006000000000001336,
+    "min_stable_events": 12,
+    "evaluation_s": 4.0,
+    "evaluation_step_s": 0.25,
+    "min_event_coverage": 0.85,
+    "min_regular_interval_fraction": 0.85,
+    "interruption_s": 0.8,
+    "range_persistence_s": 0.75,
+    "reference_margin_fraction": 0.1
+  },
+  "allowed_window_median_mv": [
+    140.1890625,
+    587.33984375
+  ],
+  "learned_parameters": [
+    "event_floor_mv",
+    "score_threshold_with_fixed_floor",
+    "interval_tolerance_s_with_fixed_limits",
+    "allowed_window_median_mv"
+  ],
+  "fit_method": "per-reference credible 4s-window median P10/P90 envelope, 10% fixed margin; pooled allowed settings, no setpoint classification",
+  "reference_support": [
+    {
+      "file": "b_0.4_test1.coret",
+      "sha256": "8acc19dbc84567548c9f8a117e6aad1975093692190e8346c90f3809f60ecebd",
+      "credible_window_count": 43,
+      "window_median_p10_median_p90_mv": [
+        155.765625,
+        160.1953125,
+        171.1875
+      ]
+    },
+    {
+      "file": "b_0.4_test2.coret",
+      "sha256": "3c0b9b0fe859bf787f0119ea345b5474d327e6b9ffe930218254de03e029ee34",
+      "credible_window_count": 37,
+      "window_median_p10_median_p90_mv": [
+        161.40625,
+        174.8828125,
+        178.8984375
+      ]
+    },
+    {
+      "file": "b_0.5_test1.coret",
+      "sha256": "7695a4e398251879ee31ebd96b7f617f9fdc0939a88f47563ae9579538310d16",
+      "credible_window_count": 27,
+      "window_median_p10_median_p90_mv": [
+        196.953125,
+        201.875,
+        211.2109375
+      ]
+    },
+    {
+      "file": "b_0.5_test2.coret",
+      "sha256": "7118404c6449e090fd6b2134fb6d517c9aa5ac06162699b5be924b2f13a2df8b",
+      "credible_window_count": 49,
+      "window_median_p10_median_p90_mv": [
+        191.25,
+        193.4765625,
+        214.203125
+      ]
+    },
+    {
+      "file": "b_0.6_test1.coret",
+      "sha256": "5c02da4ab67f4c102fa72e65088543d3c33188b21f76b4518d38ae0e81cd174a",
+      "credible_window_count": 45,
+      "window_median_p10_median_p90_mv": [
+        222.421875,
+        226.484375,
+        231.6328125
+      ]
+    },
+    {
+      "file": "b_0.6_test2.coret",
+      "sha256": "b53c4e6abdc83efcf7955a5b7fd9bcb6489c855b7fc9d08bbaef3934b3e1a358",
+      "credible_window_count": 46,
+      "window_median_p10_median_p90_mv": [
+        220.37109375,
+        225.0,
+        226.796875
+      ]
+    },
+    {
+      "file": "b_0.7_test1.coret",
+      "sha256": "07fe0f7a64c55c29ac9b8f7459e29e3f7c9ea5e9955c296e471b09bc489a41f0",
+      "credible_window_count": 45,
+      "window_median_p10_median_p90_mv": [
+        219.84375,
+        235.703125,
+        237.578125
+      ]
+    },
+    {
+      "file": "b_0.7_test2.coret",
+      "sha256": "51cc7281d14b8db303cf08e388f51f91100bdc6a11a61d16427630f027fb375a",
+      "credible_window_count": 49,
+      "window_median_p10_median_p90_mv": [
+        223.921875,
+        228.75,
+        231.1953125
+      ]
+    },
+    {
+      "file": "b_0.8_test1.coret",
+      "sha256": "07127c4d6f371277bd467e63bebbf61f5ace37fcd5a02942bbf3028621fa4eba",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        231.875,
+        239.8828125,
+        249.6328125
+      ]
+    },
+    {
+      "file": "b_0.8_test2.coret",
+      "sha256": "ae2c7bd73520ed676ffe0855c00f7a934849aebb2bdeb8f12de5c0a35fe174d7",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        249.1015625,
+        253.28125,
+        254.2578125
+      ]
+    },
+    {
+      "file": "b_0.9_test1.coret",
+      "sha256": "c4ea87d17485732a434f7bc01debb9d40618495cb2622e4a17221657592be315",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        276.9921875,
+        280.3125,
+        283.73828125
+      ]
+    },
+    {
+      "file": "b_0.9_test2.coret",
+      "sha256": "8bf2198d2a6be0dfa99ffa39239433da46407e562e6997dcf0f52cfa818c8741",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        270.5859375,
+        275.78125,
+        280.625
+      ]
+    },
+    {
+      "file": "b_1.0_test1.coret",
+      "sha256": "97dd766da5fd3f73c24e81eddebe98c00d62863bbc83407eeb3cb41353c231b7",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        273.3203125,
+        281.015625,
+        291.5234375
+      ]
+    },
+    {
+      "file": "b_1.0_test2.coret",
+      "sha256": "9689d94926bbf8a9ae9fb08f284d99b6923e0371173931f5e10e7edc2323a05a",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        284.1015625,
+        290.4296875,
+        298.984375
+      ]
+    },
+    {
+      "file": "b_1.1_test1.coret",
+      "sha256": "f969a643d4fa6464b924cdc85f1d59e158e5bf184f8f417c5a9080f5e8675569",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        299.296875,
+        305.703125,
+        340.73437500000006
+      ]
+    },
+    {
+      "file": "b_1.1_test2.coret",
+      "sha256": "e005f24afaf015b3a4847a612615b6d7faf886fec9be917733a4a943654af907",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        327.4609375,
+        339.4921875,
+        342.265625
+      ]
+    },
+    {
+      "file": "b_1.2_test1.coret",
+      "sha256": "4f81177b2f9732136e83858e36d940d5f54b5b12a4faa5cf9fe5d4b70fed343b",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        361.5,
+        370.1171875,
+        372.421875
+      ]
+    },
+    {
+      "file": "b_1.2_test2.coret",
+      "sha256": "8009f2a047ac2c395df257fa5c82cb2c19de93857f6074514ec97b79d9156e54",
+      "credible_window_count": 51,
+      "window_median_p10_median_p90_mv": [
+        365.9765625,
+        392.2265625,
+        408.359375
+      ]
+    },
+    {
+      "file": "b_1.3_test1.coret",
+      "sha256": "eedf042f6225a1db02ea512be070d1f29a72f893583b59db3747d649b74fd5b2",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        385.6640625,
+        426.171875,
+        478.84375000000006
+      ]
+    },
+    {
+      "file": "b_1.3_test2.coret",
+      "sha256": "f556bccd79e6c66998e638c04c10348345b64d1ad552317e3d0cafbfa79b3764",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        380.5078125,
+        410.78125,
+        455.875
+      ]
+    },
+    {
+      "file": "b_1.4_test1.coret",
+      "sha256": "dd358d3ff7f36d573426da734088a2b8ceaaf3c7c6ed1e4403554b5eff025012",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        404.1015625,
+        443.125,
+        488.3203125
+      ]
+    },
+    {
+      "file": "b_1.4_test2.coret",
+      "sha256": "c35627e23da4554a58eceaddd8ef51789fc1d7a31aba96b58d490d5f8ef81352",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        446.2109375,
+        467.96875,
+        486.25
+      ]
+    },
+    {
+      "file": "b_1.5_test1.coret",
+      "sha256": "2af3670ebe3c47c807341738255df89a4be8c05ee02dd45b39831ca2690b2ae9",
+      "credible_window_count": 53,
+      "window_median_p10_median_p90_mv": [
+        475.046875,
+        481.09375,
+        497.5390625
+      ]
+    },
+    {
+      "file": "b_1.5_test2.coret",
+      "sha256": "e7b16f15f083877782adb4bd0ca3b97a443bba56b9322b785efa2b0b475adee5",
+      "credible_window_count": 50,
+      "window_median_p10_median_p90_mv": [
+        394.70703125,
+        431.953125,
+        475.859375
+      ]
+    },
+    {
+      "file": "b_1.6_test1.coret",
+      "sha256": "df89fa041458c0e03961bce49fe2546bbb47852f3c4e992d2f1400b3114c5bb9",
+      "credible_window_count": 52,
+      "window_median_p10_median_p90_mv": [
+        463.75390625,
+        490.46875,
+        497.109375
+      ]
+    },
+    {
+      "file": "b_1.6_test2.coret",
+      "sha256": "4035a23a6c552f9d65e8d03d8a22f192c28eb5f3e3a85ae1e756edf51dc12b77",
+      "credible_window_count": 51,
+      "window_median_p10_median_p90_mv": [
+        494.0625,
+        513.125,
+        533.9453125
+      ]
+    }
+  ],
+  "background_support": [
+    {
+      "file": "drive_no_touch_1.coret",
+      "score_q999": 2.96875,
+      "amp80_q99_mv": 19.0625
+    },
+    {
+      "file": "drive_no_touch_2.coret",
+      "score_q999": 2.96875,
+      "amp80_q99_mv": 19.21875
+    },
+    {
+      "file": "no_driver_no_touch_1.coret",
+      "score_q999": 3.125,
+      "amp80_q99_mv": 21.5625
+    },
+    {
+      "file": "no_driver_no_touch_2.coret",
+      "score_q999": 2.968906250000032,
+      "amp80_q99_mv": 21.5625
+    }
+  ],
+  "background_hashes": {
+    "drive_no_touch_1.coret": "6a6911674be527a17474898c7724cd38c874ed91bd9788e223db8734c76ad7c0",
+    "drive_no_touch_2.coret": "68cac28554e6be97684bd5d1440656340a5cb20ae1e221c2b4a49ed21747c169",
+    "no_driver_no_touch_1.coret": "6848115b4ffd7daef33bcb2ba0fa98611f06dae552f1a6ee5408e5044bf231c9",
+    "no_driver_no_touch_2.coret": "798874d6fc67a9eaf41ce22da878d5df4b3c2806fd3aafe656e8543b73e7e528"
+  },
+  "validation_limits": [
+    "No measured force boundary. No real outside-range validation.",
+    "No unknown item is used to update this profile. Rejected references prevent profile activation."
+  ],
+  "reference_replay": {
+    "b_0.4_test1.coret": "REFERENCE_PASS",
+    "b_0.4_test2.coret": "REFERENCE_PASS",
+    "b_0.5_test1.coret": "REFERENCE_PASS",
+    "b_0.5_test2.coret": "REFERENCE_PASS",
+    "b_0.6_test1.coret": "REFERENCE_PASS",
+    "b_0.6_test2.coret": "REFERENCE_PASS",
+    "b_0.7_test1.coret": "REFERENCE_PASS",
+    "b_0.7_test2.coret": "REFERENCE_PASS",
+    "b_0.8_test1.coret": "REFERENCE_PASS",
+    "b_0.8_test2.coret": "REFERENCE_PASS",
+    "b_0.9_test1.coret": "REFERENCE_PASS",
+    "b_0.9_test2.coret": "REFERENCE_PASS",
+    "b_1.0_test1.coret": "REFERENCE_PASS",
+    "b_1.0_test2.coret": "REFERENCE_PASS",
+    "b_1.1_test1.coret": "REFERENCE_PASS",
+    "b_1.1_test2.coret": "REFERENCE_PASS",
+    "b_1.2_test1.coret": "REFERENCE_PASS",
+    "b_1.2_test2.coret": "REFERENCE_PASS",
+    "b_1.3_test1.coret": "REFERENCE_PASS",
+    "b_1.3_test2.coret": "REFERENCE_PASS",
+    "b_1.4_test1.coret": "REFERENCE_PASS",
+    "b_1.4_test2.coret": "REFERENCE_PASS",
+    "b_1.5_test1.coret": "REFERENCE_PASS",
+    "b_1.5_test2.coret": "REFERENCE_PASS",
+    "b_1.6_test1.coret": "REFERENCE_PASS",
+    "b_1.6_test2.coret": "REFERENCE_PASS"
+  },
+  "source_paths": [
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.4_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.4_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.5_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.5_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.6_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.6_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.7_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.7_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.8_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.8_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.9_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_0.9_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.0_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.0_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.1_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.1_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.2_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.2_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.3_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.3_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.4_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.4_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.5_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.5_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.6_test1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/不同强度数据/b_1.6_test2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/drive_no_touch_1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/drive_no_touch_2.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/no_driver_no_touch_1.coret",
+    "/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/user-data/no_driver_no_touch_2.coret"
+  ]
+}

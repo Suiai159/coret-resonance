@@ -1,0 +1,17 @@
+CoreT Desktop 0.3.1-qc-preview1（质检试运行）
+
+原 start-desktop.sh 启动路径不变。连接设备后，F7 开始质检；F5 仍仅采集。
+F7 固定：100 kS/s、4 Hz、±2.560 V、采集 20 秒。
+先保持接触，确认规律出击后连续计时 10 秒，期间不能抬起。
+提示连续测试完成后可以移开，但需等待完整采集及数据校验后才显示最终合格。
+出击中断会锁定本轮不通过；重新接触不能续算，需本轮结束后再次 F7。
+没有确认有效出击或测试不足显示需重测；通信异常、提前停止或削顶显示数据无效。
+算法不能单凭波形区分卡弹、抬起或偏位，不能证明物理接触，不能把本轮不通过等同于已确认卡弹。
+参数使用现有参考数据生成的固定配置；工人无需调整。此版不提供现场自动学习入口。
+不换算物理力值；保留现有参考响应范围检查。
+保存 .coret 时质检结果位于 metadata.product_qc；重新打开文件会重算而非相信旧判定。
+真实硬件在线质检与真实卡弹尚未验证；10 秒为试运行阈值。
+
+旧版目录：/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/desktop/.before-qc-preview1
+完整备份：/home/robot/Documents/Codex/2026-11-03/codex-threads-01a1817e-57e6-7bd0-a897/outputs/desktop_qc_update_20261109/desktop-before-qc.tar.gz
+当前桌面文件校验：QC_UPDATE.json；发布根目录 SHA256SUMS 仍是原版快照。

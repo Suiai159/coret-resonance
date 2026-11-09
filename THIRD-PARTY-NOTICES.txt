@@ -1,0 +1,37 @@
+CoreT Desktop 0.1.0 — third-party components
+
+This local development distribution includes application source and build scripts.
+No new license is assigned to the user's CoreT application code by this notice.
+
+Qt / PySide6 Essentials / Shiboken 6.8.3
+Copyright The Qt Company Ltd. and other contributors.
+PySide/Shiboken wheel metadata declares LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only.
+The desktop distribution uses dynamically loaded Qt/PySide libraries. The LGPL and GPL texts are in licenses/; the installed package metadata is also preserved there.
+Upstream source and component notices:
+https://code.qt.io/cgit/pyside/pyside-setup.git/?h=6.8.3
+https://download.qt.io/archive/qt/6.8/6.8.3/
+https://doc.qt.io/qt-6/licenses-used-in-qt.html
+The replaceable libraries are under _internal/. Application source and build-linux.sh are included for rebuilding against compatible modified libraries. Upstream Qt source archives are not bundled in this local prototype package.
+
+Python 3.10.12
+Copyright Python Software Foundation and other contributors.
+Python license: licenses/Python.txt.
+Source: https://www.python.org/downloads/release/python-31012/
+
+pyserial 3.5
+Copyright Chris Liechti and contributors. BSD license.
+Original license: licenses/pyserial.txt.
+Source: https://pypi.org/project/pyserial/3.5/
+
+libxcb-cursor0 0.1.1-4ubuntu1 (Ubuntu Jammy amd64)
+Original package copyright/license: licenses/libxcb-cursor.txt.
+Local runtime copy only; no system package installation was performed.
+
+PyInstaller 6.11.1 (build tool and bootloader)
+Original license and bootloader exception: licenses/PyInstaller.txt.
+Build environment versions: evidence/build-environment.txt.
+
+This software also uses the platform libraries collected by PyInstaller and the host Linux desktop stack. This file records the principal components for this local prototype; it is not a claim of a completed public-release license audit.
+
+QC update: NumPy 1.26.4 and SciPy 1.15.3 (BSD licenses and bundled dependency notices).
+See licenses/NUMPY-LICENSE.txt and licenses/SCIPY-LICENSE.txt.

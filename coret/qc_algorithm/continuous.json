@@ -1,0 +1,4 @@
+{
+  "required_continuous_s": 10.0,
+  "max_silence_periods": 1.5
+}
