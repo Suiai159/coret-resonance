@@ -1,4 +1,5 @@
 """CoreT desktop window. The GUI owns presentation, never serial I/O."""
+from copy import deepcopy
 from datetime import datetime
 import json
 from pathlib import Path
@@ -11,6 +12,7 @@ from . import __version__
 from .protocol import VALVE_FREQUENCIES, VALVE_DEFAULT_HZ
 from .bridge import AcquisitionWorker
 from .qc_worker import QCWorker
+from .qc_learning import ProfileStore
 from .plot import Waveform
 from .storage import save_capture, load_capture, export_csv, atomic_write
 
@@ -76,7 +78,7 @@ class MainWindow(QMainWindow):
     send = Signal(str, dict)
     scan = Signal()
     shutdown_requested = Signal()
-    qc_reset = Signal(int)
+    qc_reset = Signal(int, object)
     qc_samples = Signal(int, dict, object)
     qc_finish = Signal(int, dict, bool)
 
@@ -101,6 +103,11 @@ class MainWindow(QMainWindow):
         self.qc_final_pending = False
         self.qc_result = None
         self.qc_stream_error = False
+        self.reference_store = ProfileStore(self.data_dir)
+        self.active_reference = None
+        self.reference_error = ''
+        self.learning_dialog = None
+        self.reload_reference()
         self.setWindowTitle('CoreT 采集助手  ' + __version__)
         self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, True)
         self.setMinimumSize(900, 560)
@@ -149,7 +156,7 @@ class MainWindow(QMainWindow):
         self.csv_action = self._action('导出 CSV', 'Ctrl+Shift+S', self.save_csv)
         self.image_action = self._action('导出波形图片', None, self.save_image)
         self.start_action = self._action('开始测量', 'F5', self.start_capture)
-        self.qc_action = self._action('开始质检（固定配置）', 'F7', self.start_qc)
+        self.qc_action = self._action('开始质检', 'F7', self.start_qc)
         self.stop_action = self._action('停止', 'F6', lambda:self.command('stop'))
         self.connect_action = self._action('连接', 'Ctrl+D', self.connect_source)
         self.disconnect_action = self._action('断开', None, lambda:self.command('disconnect'))
@@ -171,6 +178,8 @@ class MainWindow(QMainWindow):
         device_menu = self.menuBar().addMenu('采集(&A)')
         device_menu.addActions([self.connect_action,self.disconnect_action,self.qc_action,self.start_action,self.stop_action])
         self.addAction(self.qc_action)
+        self.learning_action = self._action('参考学习（可选）…', None, self.open_reference_learning)
+        device_menu.addSeparator(); device_menu.addAction(self.learning_action)
         view_menu = self.menuBar().addMenu('视图(&V)')
         view_menu.addActions([self.fit_action, self.settings_action, self.log_action])
         view_menu.addSeparator(); view_menu.addActions([self.maximize_action,self.fullscreen_action])
@@ -239,7 +248,8 @@ class MainWindow(QMainWindow):
         left.setContentsMargins(0,0,0,0); left.setSpacing(8)
         box, g = group('核心件连续质检'); left.addWidget(box)
         g.addWidget(self.qc_button)
-        g.addWidget(label('连续 10 秒 · 4 Hz · 试运行\n中断后必须重新开始，不自动续测。',True))
+        self.reference_label=label('',True); g.addWidget(self.reference_label)
+        self.update_reference_label()
         box, g = group('设备连接'); left.addWidget(box)
         self.mode = QComboBox(); self.mode.addItem('USB · ESP32-S3', 'serial'); self.mode.addItem('演示 · PC 正弦模拟', 'simulator')
         g.addWidget(self.mode)
@@ -377,11 +387,12 @@ class MainWindow(QMainWindow):
         if not hasattr(self,'start_action'): return
         connected = self.state.get('connected',False)
         phase = self.state.get('phase','disconnected')
-        ready = not self.busy and not self.closing
+        ready = not self.busy and not self.closing and self.learning_dialog is None
         can_connect = ready and not connected and (self.mode.currentData()!='serial' or bool(self.port.currentData()))
         can_start = ready and phase=='idle' and self.state.get('pending') is None
         can_save = ready and bool(self.capture) and phase not in ACTIVE and not self.qc_final_pending
-        qc_ready = can_start and not self.qc_final_pending and self.state.get('mode')!='simulator'
+        qc_ready = can_start and not self.qc_final_pending and self.state.get('mode')!='simulator' and not self.reference_error
+        self.learning_action.setEnabled(ready and not connected and not self.qc_final_pending)
         for w in (self.qc_button,self.qc_action): w.setEnabled(qc_ready)
         for w in (self.connect_button,self.connect_action): w.setEnabled(can_connect)
         for w in (self.disconnect_button,self.disconnect_action): w.setEnabled(ready and connected)
@@ -393,7 +404,7 @@ class MainWindow(QMainWindow):
         self.open_action.setEnabled(ready and not connected)
 
     def command(self, name, **args):
-        if self.busy or self.closing: return
+        if self.busy or self.closing or self.learning_dialog is not None: return
         self.busy=True; self.update_actions(); self.send.emit(name,args)
 
     def connect_source(self):
@@ -401,27 +412,60 @@ class MainWindow(QMainWindow):
         self.command('connect',mode=self.mode.currentData(),port=self.port.currentData() or '')
 
     def start_capture(self):
-        if self.busy or self.closing or self.qc_final_pending: return
+        if self.busy or self.closing or self.qc_final_pending or self.learning_dialog is not None: return
         if not self.confirm_replace(): return
         self._next_qc_requested=False
         self.command('start',range=self.range.currentData(),duration_ms=self.duration.currentData(),
                      valve_hz=self.valve_frequency.currentData())
 
     def start_qc(self):
-        if self.busy or self.closing or self.qc_final_pending or self.state.get('phase')!='idle': return
+        if self.busy or self.closing or self.qc_final_pending or self.learning_dialog is not None or self.state.get('phase')!='idle': return
+        if self.reference_error:
+            self.set_notice('参考配置无效；请断开设备并在参考学习中恢复默认。',warning=True); return
         if self.state.get('mode')=='simulator':
             self.set_notice('演示数据不用于质检，请连接真实设备。',warning=True); return
         if not self.confirm_replace(): return
         self._next_qc_requested=True
         self.duration.setCurrentIndex(self.duration.findData(20000))
         self.valve_frequency.setCurrentIndex(self.valve_frequency.findData(4))
-        self.range.setCurrentIndex(self.range.findData(4))
-        self.command('start',range=4,duration_ms=20000,valve_hz=4)
+        range_code=self.active_reference['contract']['range'] if self.active_reference else 4
+        self.range.setCurrentIndex(self.range.findData(range_code))
+        self.command('start',range=range_code,duration_ms=20000,valve_hz=4)
+
+    def reload_reference(self):
+        try:
+            self.active_reference=self.reference_store.load_active(); self.reference_error=''
+        except Exception as e:
+            self.active_reference=None; self.reference_error=str(e)
+
+    def update_reference_label(self):
+        if self.reference_error:
+            text='参考配置无效 · 质检已禁止\n断开后从参考学习恢复默认。'
+        else:
+            name=self.active_reference['name'] if self.active_reference else '默认参考'
+            volts='±5.120 V' if self.active_reference and self.active_reference['contract']['range']==3 else '±2.560 V'
+            text=f'{name} · {volts}\n连续 10 秒 · 4 Hz · 中断须重测'
+        self.reference_label.setText(text)
+        self.qc_button.setToolTip('固定 20 秒采集 / 4 Hz；使用所示参考配置及其量程。断开设备后可打开可选参考学习。')
+
+    def open_reference_learning(self):
+        if self.busy or self.closing or self.state.get('connected') or self.qc_final_pending or self.learning_dialog is not None: return
+        from .qc_learning_dialog import LearningDialog
+        dialog=LearningDialog(self.reference_store,self.active_reference,self.reference_error,self)
+        self.learning_dialog=dialog; self.update_actions()
+        try:
+            dialog.exec()
+            if dialog.changed:
+                self.reload_reference(); self.update_reference_label()
+                self.set_notice('参考配置已更新，仅影响后续质检与重新打开的回放；历史结果不自动改写。',warning=bool(self.reference_error))
+        finally:
+            self.learning_dialog=None; dialog.deleteLater(); self.update_actions()
 
     def reset_qc(self, enabled, replay=False):
         self.qc_generation+=1; self.qc_requested=enabled; self.qc_final_pending=False
         self.qc_result=None; self.qc_stream_error=False
-        self.qc_reset.emit(self.qc_generation)
+        reference={'_load_error':self.reference_error} if self.reference_error else deepcopy(self.active_reference)
+        self.qc_reset.emit(self.qc_generation,reference)
         self.qc_panel.setVisible(enabled or replay)
         self.qc_progress.setValue(0); self.qc_time.setText('连续目标 10.0 s')
         self.qc_status.setText('回放分析中' if replay else '准备质检' if enabled else '仅采集 · 未质检')
@@ -449,7 +493,7 @@ class MainWindow(QMainWindow):
         elapsed=float(result.get('continuous_evidence_s',0.)); required=float(result.get('required_continuous_s',10.))
         self.qc_time.setText(f'连续 {min(elapsed,required):.1f} / {required:g} s')
         self.qc_progress.setValue(min(1000,int(elapsed/required*1000)))
-        self.qc_hint.setText(result.get('message','请检查测试状态'))
+        self.qc_hint.setText(result.get('message','请检查测试状态')+' · 配置：'+result.get('reference_name','默认参考'))
         if final:
             self.qc_final_pending=False
             if self.capture is not None:
@@ -577,6 +621,7 @@ class MainWindow(QMainWindow):
 
     def load_from(self,path):
         if self.state.get('connected'): raise ValueError('请先断开连接再回放文件')
+        if self.learning_dialog is not None: raise ValueError('请先关闭参考学习')
         capture=load_capture(path)
         self.operation_error = ''
         self.capture=capture; self.capture_path=Path(path); self.replaying=True; self.dirty=False
@@ -608,7 +653,7 @@ class MainWindow(QMainWindow):
         QMessageBox.warning(self,'操作未完成',str(error))
 
     def show_help(self):
-        QMessageBox.information(self,'快速使用','质检：连接后按 F7，固定 20 秒采集 / 4 Hz / ±2.560 V。确认出击后连续测试 10 秒，不要抬起；中断后本轮锁定不合格，须重新开始。连续测试完成后等待数据校验，再显示合格。F5 仍为普通采集。\n\n1. 先配套烧录 0.3 联动固件，再连接 USB 数据口；无需设备时可选演示（不驱动硬件）。\n2. 选择测量时间与电磁阀 1～6 Hz（默认 4 Hz），高电平固定 40 ms。开始测量（F5）同步开阀，自动完成、停止（F6）或采集故障会关阀。\n3. 自动结束或提前停止（F6）后，可保存会话（Ctrl+S）。\n4. 滚轮缩放、拖动平移、双击全览。\n5. F11 全屏，Esc 退出；Ctrl+M 最大化/还原。\n6. Ctrl+B 收起设置，Ctrl+L 查看日志与诊断详情。\n7. 断开后可打开 .coret 离线回放。\n\n纵轴仍为原始码，横轴按标称采样率计算；不是电压标定值。')
+        QMessageBox.information(self,'快速使用','质检：连接后按 F7，固定 20 秒采集 / 4 Hz；默认 ±2.560 V，启用学习配置后使用其量程。确认出击后连续测试 10 秒，不要抬起；中断后本轮锁定不合格，须重新开始。连续测试完成后等待数据校验，再显示合格。F5 仍为普通采集。\n可选参考学习：断开设备后，从采集菜单导入三个合格件各三档的记录及背景；生成候选不自动启用，可随时恢复默认。回放按当前配置重算，不使用文件内旧判定放行。\n\n1. 先配套烧录 0.3 联动固件，再连接 USB 数据口；无需设备时可选演示（不驱动硬件）。\n2. 选择测量时间与电磁阀 1～6 Hz（默认 4 Hz），高电平固定 40 ms。开始测量（F5）同步开阀，自动完成、停止（F6）或采集故障会关阀。\n3. 自动结束或提前停止（F6）后，可保存会话（Ctrl+S）。\n4. 滚轮缩放、拖动平移、双击全览。\n5. F11 全屏，Esc 退出；Ctrl+M 最大化/还原。\n6. Ctrl+B 收起设置，Ctrl+L 查看日志与诊断详情。\n7. 断开后可打开 .coret 离线回放。\n\n纵轴仍为原始码，横轴按标称采样率计算；不是电压标定值。')
 
     def show_about(self):
         QMessageBox.about(self,'关于 CoreT',f'CoreT 采集助手 {__version__}\n本地单通道采集工具 · Linux x86_64\n\nQt / PySide6 桌面界面，协议层复用已验证的 CoreT 接收器。\n不修改或烧录板端固件，不启动 HTTP 服务。\nQt / PySide6 使用 LGPLv3，第三方声明随发行包提供。')
@@ -636,6 +681,8 @@ class MainWindow(QMainWindow):
             event.accept(); return
         event.ignore()
         if self.closing: return
+        if self.learning_dialog is not None:
+            self.set_notice('请先关闭参考学习窗口。',warning=True); return
         if self.state.get('phase') in ACTIVE:
             answer=QMessageBox.question(self,'停止并退出','采集正在进行。是否发送 STOP、等待排空后退出？本次数据将尝试保存到退出恢复会话。',QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No,QMessageBox.StandardButton.No)
             if answer!=QMessageBox.StandardButton.Yes: return

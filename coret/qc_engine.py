@@ -4,6 +4,7 @@ No serial I/O or automatic parameter fitting. Future support is withheld from
 live decisions. A frozen-prefix consistency check fails closed if an earlier
 committed detection changes. Physical contact and jam cause are not inferred.
 """
+from copy import deepcopy
 from dataclasses import asdict
 import hashlib
 import json
@@ -48,8 +49,16 @@ def metadata_problem(meta,p):
 
 
 class QCEngine:
-    def __init__(self):
-        self.profile,self.config,self.profile_hash=load_configuration()
+    def __init__(self, reference=None):
+        self.reference=deepcopy(reference)
+        if reference is None:
+            self.profile,self.config,self.profile_hash=load_configuration()
+        else:
+            from .qc_learning import validate_bundle, digest
+            validate_bundle(self.reference)
+            self.profile=deepcopy(self.reference['detector'])
+            self.config=ContinuousConfig(**self.reference['continuous'])
+            self.profile_hash=digest(self.profile)
         self.p,_,_=check_profile(self.profile)
         self.reset()
 
@@ -59,9 +68,23 @@ class QCEngine:
         self.fault=None;self.finalized=False;self.frozen_trial=None
 
     def _wrap(self,r,final=False):
-        return dict(r,final=final,algorithm_version=VERSION,profile_sha256=self.profile_hash,
+        result=dict(r,final=final,algorithm_version=VERSION,profile_sha256=self.profile_hash,
                     required_continuous_s=self.config.required_continuous_s,
-                    preview_lookahead_s=LOOKAHEAD_S,physical_contact_verified=False,jam_confirmed=False)
+                    preview_lookahead_s=LOOKAHEAD_S,physical_contact_verified=False,jam_confirmed=False,
+                    reference_name=self.reference['name'] if self.reference else '默认参考',
+                    reference_sha256=self.reference['sha256'] if self.reference else None)
+        if final: result['reference_profile']=deepcopy(self.reference)
+        return result
+
+    def metadata_problem(self,meta):
+        problem=metadata_problem(meta,self.p)
+        if problem: return problem
+        if self.reference:
+            if meta.get('range')!=self.reference['contract']['range']:
+                return '本次量程与启用的学习配置不一致，请重新选择对应配置'
+            if meta.get('target_samples')!=2000000:
+                return '学习配置仅支持 20 秒采集'
+        return None
 
     def error(self,message,final=False):
         self.fault=message
@@ -74,7 +97,7 @@ class QCEngine:
 
     def feed(self,meta,delta):
         if self.finalized:return None
-        reason=metadata_problem(meta,self.p)
+        reason=self.metadata_problem(meta)
         if reason:
             return self._wrap({'result':'NOT_SUPPORTED','reason':'UNSUPPORTED_CAPTURE','message':reason})
         if self.fault:return self.error(self.fault)
@@ -128,7 +151,7 @@ class QCEngine:
 
     def finish(self,capture):
         self.finalized=True
-        meta=capture['metadata'];reason=metadata_problem(meta,self.p)
+        meta=capture['metadata'];reason=self.metadata_problem(meta)
         if reason:return self._wrap({'result':'NOT_SUPPORTED','reason':'UNSUPPORTED_CAPTURE','message':reason},True)
         if self.fault:return self.error(self.fault,True)
         raw=np.asarray(capture['values'],dtype=np.uint16);idx=np.asarray(capture['indices'],dtype=np.uint32)
