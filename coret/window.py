@@ -150,7 +150,7 @@ class MainWindow(QMainWindow):
         self.csv_action = self._action('导出 CSV', 'Ctrl+Shift+S', self.save_csv)
         self.image_action = self._action('导出波形图片', None, self.save_image)
         self.start_action = self._action('开始测量', 'F5', self.start_capture)
-        self.qc_action = self._action('开始质检（固定配置）', 'F7', self.start_qc)
+        self.qc_action = self._action('开始质检', 'F7', self.start_qc)
         self.stop_action = self._action('停止', 'F6', lambda:self.command('stop'))
         self.connect_action = self._action('连接', 'Ctrl+D', self.connect_source)
         self.disconnect_action = self._action('断开', None, lambda:self.command('disconnect'))
@@ -222,7 +222,7 @@ class MainWindow(QMainWindow):
         qc_layout = QVBoxLayout(qc_panel); qc_layout.setContentsMargins(10,7,10,7); qc_layout.setSpacing(4)
         qc_row = QHBoxLayout()
         self.qc_button = QPushButton('开始质检  F7'); self.qc_button.setObjectName('start')
-        self.qc_button.setToolTip('固定 20 秒采集、4 Hz、±2.560 V；确认出击后连续测试 10 秒。不会改动固件。')
+        self.qc_button.setToolTip('使用当前选择的输入量程；固定 20 秒采集、4 Hz，确认出击后连续测试 10 秒。采集期间不可切换量程。')
         self.qc_button.clicked.connect(self.start_qc)
         self.qc_status = label('待开始质检'); self.qc_status.setStyleSheet('font-size:21px;font-weight:bold;color:#425b6a;')
         qc_row.addWidget(self.qc_status,1)
@@ -416,8 +416,7 @@ class MainWindow(QMainWindow):
         self._next_qc_requested=True
         self.duration.setCurrentIndex(self.duration.findData(20000))
         self.valve_frequency.setCurrentIndex(self.valve_frequency.findData(4))
-        self.range.setCurrentIndex(self.range.findData(4))
-        self.command('start',range=4,duration_ms=20000,valve_hz=4)
+        self.command('start',range=self.range.currentData(),duration_ms=20000,valve_hz=4)
 
     def reset_qc(self, enabled, replay=False):
         self.qc_generation+=1; self.qc_requested=enabled; self.qc_final_pending=False
@@ -609,7 +608,7 @@ class MainWindow(QMainWindow):
         QMessageBox.warning(self,'操作未完成',str(error))
 
     def show_help(self):
-        QMessageBox.information(self,'快速使用','质检：连接后按 F7，固定 20 秒采集 / 4 Hz / ±2.560 V。确认出击后连续测试 10 秒，不要抬起；中断后本轮锁定不合格，须重新开始。连续测试完成后等待数据校验，再显示合格。F5 仍为普通采集。\n\n1. 先配套烧录 0.3 联动固件，再连接 USB 数据口；无需设备时可选演示（不驱动硬件）。\n2. 选择测量时间与电磁阀 1～6 Hz（默认 4 Hz），高电平固定 40 ms。开始测量（F5）同步开阀，自动完成、停止（F6）或采集故障会关阀。\n3. 自动结束或提前停止（F6）后，可保存会话（Ctrl+S）。\n4. 滚轮缩放、拖动平移、双击全览。\n5. F11 全屏，Esc 退出；Ctrl+M 最大化/还原。\n6. Ctrl+B 收起设置，Ctrl+L 查看日志与诊断详情。\n7. 断开后可打开 .coret 离线回放。\n\n纵轴仍为原始码，横轴按标称采样率计算；不是电压标定值。')
+        QMessageBox.information(self,'快速使用','质检：连接后按 F7，使用当前选择的输入量程，固定 20 秒采集 / 4 Hz。开始前可选择量程，采集期间不可切换。确认出击后连续测试 10 秒，不要抬起；中断后本轮锁定不合格，须重新开始。连续测试完成后等待数据校验，再显示合格。F5 仍为普通采集。\n\n1. 先配套烧录 0.3 联动固件，再连接 USB 数据口；无需设备时可选演示（不驱动硬件）。\n2. 选择测量时间与电磁阀 1～6 Hz（默认 4 Hz），高电平固定 40 ms。开始测量（F5）同步开阀，自动完成、停止（F6）或采集故障会关阀。\n3. 自动结束或提前停止（F6）后，可保存会话（Ctrl+S）。\n4. 滚轮缩放、拖动平移、双击全览。\n5. F11 全屏，Esc 退出；Ctrl+M 最大化/还原。\n6. Ctrl+B 收起设置，Ctrl+L 查看日志与诊断详情。\n7. 断开后可打开 .coret 离线回放。\n\n纵轴仍为原始码，横轴按标称采样率计算；不是电压标定值。')
 
     def show_about(self):
         QMessageBox.about(self,'关于 CoreT',f'CoreT 采集助手 {__version__}\n本地单通道采集工具 · Linux x86_64\n\nQt / PySide6 桌面界面，协议层复用已验证的 CoreT 接收器。\n不修改或烧录板端固件，不启动 HTTP 服务。\nQt / PySide6 使用 LGPLv3，第三方声明随发行包提供。')

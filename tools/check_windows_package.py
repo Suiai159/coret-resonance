@@ -12,16 +12,17 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 
-def reference_capture(interrupted=False):
+def reference_capture(interrupted=False, range_code=4):
     # Synthetic reference only. Matches the existing QC regression fixture.
     import numpy as np
+    from coret.qc_algorithm.coret_qc_v2 import MV_PER_CODE
     raw = np.full(2000000, 32000, dtype=np.uint16)
     for event in range(79):
         if interrupted and 24 <= event < 28:
             continue
         start = round((.02 + event * .25) * 100000)
-        raw[start:start+80] += 2560
-    metadata = dict(sample_rate=100000, range=4, valve_hz=4, valve_high_us=40000,
+        raw[start:start+80] += round(200 / MV_PER_CODE[range_code])
+    metadata = dict(sample_rate=100000, range=range_code, valve_hz=4, valve_high_us=40000,
                     valve_control='measurement_linked', samples=len(raw), target_samples=len(raw),
                     end={'stored_samples': len(raw)}, crc_errors=0, bad_headers=0, index_gaps=0,
                     garbage_bytes=0, errors=[], events=[{'time': '00:00:00', 'text': '合成回放验证，不是真实测量'}],
@@ -58,10 +59,12 @@ def main():
         raise AssertionError(report)
     from coret.storage import save_capture
     replays = {}
-    for name, interrupted, expected in [('合格参考', False, 'REFERENCE_PASS'),
-                                        ('中断参考', True, 'NOT_PASSED')]:
+    from coret.protocol import RANGES
+    cases = [(f'量程{code}-合格参考', False, code, 'REFERENCE_PASS') for code in RANGES]
+    cases += [(f'量程{code}-中断参考', True, code, 'NOT_PASSED') for code in RANGES]
+    for name, interrupted, range_code, expected in cases:
         capture = out / (name + '.coret')
-        save_capture(capture, reference_capture(interrupted))
+        save_capture(capture, reference_capture(interrupted, range_code))
         evidence = out / name
         run('--open', capture, '--qc-replay-check', evidence, timeout=60)
         result = json.loads((evidence / 'result.json').read_text(encoding='utf-8'))

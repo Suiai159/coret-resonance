@@ -42,7 +42,7 @@ def feature_arrays(lo,hi,p):
 def metadata_problem(meta,p):
     if meta.get('mode')=='simulator':return '演示数据不能作为核心件质检结果'
     if meta.get('sample_rate')!=100000:return '质检仅支持 100 kS/s 采样'
-    if meta.get('range') not in MV_PER_CODE:return '质检仅支持 ±2.560 V / ±5.120 V 量程'
+    if type(meta.get('range')) is not int or meta['range'] not in MV_PER_CODE:return '不支持的输入量程，无法换算质检幅度'
     if meta.get('valve_hz')!=p.target_hz:return '当前参考配置仅支持 4 Hz'
     return None
 

@@ -14,7 +14,13 @@ from scipy import ndimage, signal
 from .coret_offline import Config as CaptureConfig, load_capture, validate_capture, sha256
 
 VERSION = 'coret-range-qc-0.2.0-experimental'
-MV_PER_CODE = {3: 10.240*1000/65536, 4: 5.120*1000/65536}
+# Nominal ADC input spans in mV for every firmware-supported range. Bipolar
+# spans cover negative through positive full scale; unipolar spans start at 0.
+# Features use peak-to-peak amplitude, so the DC zero-code offset cancels.
+MV_PER_CODE = {code: span / 65536 for code, span in {
+    0: 24576, 1: 20480, 2: 12288, 3: 10240, 4: 5120,
+    8: 12288, 9: 10240, 10: 6144, 11: 5120,
+}.items()}
 FEATURE_KEYS = ('bin_s', 'local_noise_bins', 'noise_mad_floor_mv', 'target_hz')
 
 

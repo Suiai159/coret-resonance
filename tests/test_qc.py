@@ -16,6 +16,8 @@ from coret.runtime import prepare_headless_fonts
 prepare_headless_fonts()
 from PySide6.QtWidgets import QApplication
 from coret.qc_engine import QCEngine
+from coret.qc_algorithm.coret_qc_v2 import MV_PER_CODE
+from coret.protocol import RANGES
 from coret.storage import save_capture, load_capture
 from coret.window import MainWindow
 
@@ -23,15 +25,15 @@ APP=QApplication.instance() or QApplication([])
 APP.setQuitOnLastWindowClosed(False)
 
 
-def fixture(kind='normal'):
+def fixture(kind='normal', range_code=4):
     times=.02+np.arange(79)*.25
     if kind=='interrupted':times=np.r_[times[:24],times[28:]]
     if kind=='removed_after_pass':times=times[:52]
     if kind=='noise':times=[]
     raw=np.full(2000000,32000,dtype=np.uint16)
     for t in times:
-        start=round(t*100000);raw[start:start+80]+=2560
-    m={'sample_rate':100000,'range':4,'valve_hz':4,'valve_high_us':40000,'valve_control':'measurement_linked',
+        start=round(t*100000);raw[start:start+80]+=round(200 / MV_PER_CODE[range_code])
+    m={'sample_rate':100000,'range':range_code,'valve_hz':4,'valve_high_us':40000,'valve_control':'measurement_linked',
        'samples':len(raw),'target_samples':len(raw),'end':{'stored_samples':len(raw)},
        'crc_errors':0,'bad_headers':0,'index_gaps':0,'garbage_bytes':0,'errors':[],'events':[],
        'passed':True,'measurement_complete':True,'early_stop':False,'start_ack':0,'mode':'serial','phase':'idle'}
@@ -95,9 +97,37 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(e.finish(c)['result'],'RETEST')
 
     def test_simulator_and_unsupported_settings_never_pass(self):
-        for key,value in [('mode','simulator'),('range',0),('valve_hz',5),('sample_rate',50000)]:
+        for key,value in [('mode','simulator'),('range',7),('valve_hz',5),('sample_rate',50000)]:
             c=fixture();c['metadata'][key]=value
             self.assertEqual(QCEngine().finish(c)['result'],'NOT_SUPPORTED')
+
+    def test_every_range_uses_nominal_full_span_for_mv_conversion(self):
+        expected = {0: .375, 1: .3125, 2: .1875, 3: .15625, 4: .078125,
+                    8: .1875, 9: .15625, 10: .09375, 11: .078125}
+        self.assertEqual(set(MV_PER_CODE),set(RANGES))
+        self.assertEqual(MV_PER_CODE,expected)
+
+    def test_equivalent_physical_signal_passes_live_and_replay_on_all_ranges(self):
+        for code in RANGES:
+            with self.subTest(range_code=code):
+                c=fixture(range_code=code);e=QCEngine();results=feed(e,c)
+                self.assertFalse(any(r['result']=='NOT_SUPPORTED' for r in results))
+                self.assertTrue(any(r['result']=='AWAITING_VALIDATION' for r in results))
+                self.assertFalse(any(r['result']=='REFERENCE_PASS' for r in results))
+                self.assertEqual(e.finish(c)['result'],'REFERENCE_PASS')
+                self.assertEqual(QCEngine().finish(c)['result'],'REFERENCE_PASS')
+
+    def test_interruption_cannot_pass_on_any_range(self):
+        for code in RANGES:
+            with self.subTest(range_code=code):
+                c=fixture('interrupted',range_code=code)
+                self.assertEqual(QCEngine().finish(c)['result'],'NOT_PASSED')
+
+    def test_invalid_range_types_never_pass(self):
+        for code in (None,True,False,3.0,'4',7,12):
+            with self.subTest(range_code=code):
+                c=fixture();c['metadata']['range']=code
+                self.assertEqual(QCEngine().finish(c)['result'],'NOT_SUPPORTED')
 
     def test_missing_chunk_and_clipping_fail_closed(self):
         c=fixture();e=QCEngine()
@@ -133,12 +163,26 @@ class QCWindowTests(unittest.TestCase):
         self.assertFalse(self.w.qc_thread.isRunning())
         self.w.deleteLater();APP.processEvents();self.temp.cleanup()
 
-    def test_fixed_start_does_not_use_operator_values(self):
+    def test_qc_uses_selected_range_but_keeps_duration_and_frequency(self):
         self.w.state.update(phase='idle',mode='serial',connected=True)
-        self.w.duration.setCurrentIndex(0);self.w.valve_frequency.setCurrentIndex(5)
-        with patch.object(self.w,'command') as command:
-            self.w.start_qc();command.assert_called_once_with('start',range=4,duration_ms=20000,valve_hz=4)
-        self.assertTrue(self.w._next_qc_requested)
+        for code in RANGES:
+            with self.subTest(range_code=code):
+                self.w.range.setCurrentIndex(self.w.range.findData(code))
+                self.w.duration.setCurrentIndex(0);self.w.valve_frequency.setCurrentIndex(5)
+                with patch.object(self.w,'command') as command:
+                    self.w.start_qc()
+                    command.assert_called_once_with('start',range=code,duration_ms=20000,valve_hz=4)
+                self.assertEqual(self.w.range.currentData(),code)
+                self.assertTrue(self.w._next_qc_requested)
+
+    def test_range_editable_before_and_after_qc_not_during_capture(self):
+        self.w.state.update(phase='idle',mode='serial',connected=True)
+        self.w.update_actions();self.assertTrue(self.w.range.isEnabled())
+        for phase in ('starting','running','stopping','draining'):
+            self.w.state['phase']=phase;self.w.update_actions()
+            self.assertFalse(self.w.range.isEnabled(),phase)
+        self.w.state['phase']='idle';self.w.update_actions()
+        self.assertTrue(self.w.range.isEnabled())
 
     def test_simulator_qc_start_disabled(self):
         self.w.state.update(phase='idle',mode='simulator',connected=True);self.w.update_actions()

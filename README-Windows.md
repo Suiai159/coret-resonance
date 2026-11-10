@@ -1,8 +1,10 @@
 # CoreT Desktop — Windows 测试版
 
+当前版本：`0.3.1-qc-preview1-win2`（质检量程可选）。
+
 基于 `main` 的 `31f179c`，Windows 适配在独立的 `windows` 分支进行。
 目标平台：Windows 10 / 11 **x64**。不支持 Windows 7 或 32 位系统。
-本分支保留原采集协议、测量参数、质检配置和算法；不是另写一套 Windows 算法。
+本分支保留原采集协议和质检阈值；质检沿用所选量程，并按其标称跨度换算 mV 幅度；不是另写一套 Windows 算法。
 
 ## 1. 直接测试 EXE（不需要安装 Python）
 
@@ -51,7 +53,7 @@ Windows 默认将设置、默认会话和诊断日志写到当前用户的：
    COM10 及以上也支持。点击刷新后再连接，等待同步完成。
 4. 保持设备、电磁阀和机械动作处于安全状态，再人工触发测量。
 5. 验证各时长、各阀频率、提前停止、拔线、重新连接、关闭软件；确认停止和故障时关阀。
-6. 按 F7 验证质检固定配置及连续 10 秒规则，具体见 `QC-使用说明.txt`。
+6. 质检前选择输入量程，再按 F7；保留所选量程，固定 20 秒 / 4 Hz，连续测试规则仍为 10 秒。采集中不可切换量程，具体见 `QC-使用说明.txt`。
 
 若连接失败：先关闭占用同一 COM 口的串口助手/烧录器；检查数据线、固件、设备管理器和端口编号。
 不要为了一个未识别设备盲目安装第三方驱动。自动验证只使用模拟器和合成离线数据，
@@ -80,7 +82,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Python 
 不会打入 Linux 的 `libxcb-cursor.so.0`。运行包包含配置 JSON、SVG、Qt 插件、NumPy/SciPy、
 第三方许可和 `source/` 重建源码。实际环境版本记录在包内 `build-environment.txt`。
 
-输出：
+输出（重新打包时覆盖同一路径，请先正常退出旧程序）：
 
 ```text
 dist/CoreT-Desktop/CoreT-Desktop.exe
@@ -113,3 +115,9 @@ GitHub Actions 工作流 `.github/workflows/windows.yml` 执行同类检查并�
 - Windows 串口不传 POSIX `exclusive` 参数；打开失败释放句柄；保留 DTR/RTS 预设置与 STOP 同步。
 - 新增滚动诊断日志，便于测试时提供异常信息。
 - 保留 Linux 启动/打包脚本和 Linux 默认数据目录，不直接修改 `main` 分支。
+
+## win2 修正
+
+F7 不再强制重置为 ±2.560 V，九档输入量程均可在开始前选择。
+双极性量程按全跨度、单极性量程按上限换算每码 mV；原阈值和连续测试规则不变。
+这是标称电压幅度换算，并非额外硬件校准；更换量程后的真实设备表现仍应实测。
