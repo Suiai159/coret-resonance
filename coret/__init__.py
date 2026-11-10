@@ -1,1 +1,1 @@
-__version__ = '0.3.1-qc-preview1-win2'
+__version__ = '0.3.1'

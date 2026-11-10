@@ -1,19 +1,20 @@
-# CoreT Desktop — Windows 测试版
+# CoreT Desktop v0.3.1 — Windows x64
 
-当前版本：`0.3.1-qc-preview1-win2`（质检量程可选）。
+正式桌面版本：`0.3.1`（质检量程可选；算法的试运行标识和规则保持不变）。
 
 基于 `main` 的 `31f179c`，Windows 适配在独立的 `windows` 分支进行。
 目标平台：Windows 10 / 11 **x64**。不支持 Windows 7 或 32 位系统。
 本分支保留原采集协议和质检阈值；质检沿用所选量程，并按其标称跨度换算 mV 幅度；不是另写一套 Windows 算法。
 
-## 1. 直接测试 EXE（不需要安装 Python）
+## 1. 运行正式版（不需要安装 Python）
 
 1. 将 `CoreT-Desktop-Windows-x64.zip` **完整解压**到本地目录。
 2. 双击 `CoreT-Desktop/CoreT-Desktop.exe`。
 3. 保持 EXE 旁的 `_internal` 文件夹完整；不能只复制 EXE。
 4. 程序启动时**不会自动连接串口，也不会自动开始测量或驱动电磁阀**。
 
-这是未签名的本地测试包，尚不是带签名的正式安装程序。请只运行你自己构建或确认来源的包。
+这是正式发布的便携版 ZIP，未做代码签名，也不是安装器。请从本仓库的 GitHub Release 获取，
+并使用同一 Release 附带的 `SHA256SUMS.txt` 核对下载完整性。
 如果 Windows 显示来源/信誉提示，应先核对包的来源；不需要关闭杀毒软件或以管理员运行。
 
 ### 数据和日志
@@ -80,13 +81,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Python 
 `ExecutionPolicy Bypass` 仅针对这次脚本进程，不会修改系统执行策略。
 打包必须在 Windows x64 上执行，使用 PyInstaller 的 **onedir/windowed** 模式；
 不会打入 Linux 的 `libxcb-cursor.so.0`。运行包包含配置 JSON、SVG、Qt 插件、NumPy/SciPy、
-第三方许可和 `source/` 重建源码。实际环境版本记录在包内 `build-environment.txt`。
+第三方许可和 `source/` 重建源码。实际环境版本记录在包内 `build-environment.txt`，
+应用版本及源码提交记录在 `release-info.json`，EXE 文件属性中也带有正式版本号。
 
 输出（重新打包时覆盖同一路径，请先正常退出旧程序）：
 
 ```text
 dist/CoreT-Desktop/CoreT-Desktop.exe
 dist/CoreT-Desktop-Windows-x64.zip
+dist/SHA256SUMS.txt
 ```
 
 ## 4. 自动验证（不接物理设备）
@@ -116,7 +119,7 @@ GitHub Actions 工作流 `.github/workflows/windows.yml` 执行同类检查并�
 - 新增滚动诊断日志，便于测试时提供异常信息。
 - 保留 Linux 启动/打包脚本和 Linux 默认数据目录，不直接修改 `main` 分支。
 
-## win2 修正
+## v0.3.1 量程修正
 
 F7 不再强制重置为 ±2.560 V，九档输入量程均可在开始前选择。
 双极性量程按全跨度、单极性量程按上限换算每码 mV；原阈值和连续测试规则不变。

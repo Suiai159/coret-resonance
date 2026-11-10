@@ -1,4 +1,4 @@
-CoreT Desktop 0.3.1-qc-preview1-win2（质检试运行）
+CoreT Desktop 0.3.1 正式桌面版（质检规则仍为试运行）
 
 Windows 运行 CoreT-Desktop.exe，或使用 start-source.bat 从源码启动。连接设备后，F7 开始质检；F5 仍仅采集。
 F7 使用当前选择的输入量程；固定 100 kS/s、4 Hz、采集 20 秒。
@@ -12,7 +12,7 @@ F7 使用当前选择的输入量程；固定 100 kS/s、4 Hz、采集 20 秒。
 参数使用现有参考数据生成的固定配置；工人无需调整。此版不提供现场自动学习入口。
 不换算物理力值；保留现有参考响应范围检查。
 保存 .coret 时质检结果位于 metadata.product_qc；重新打开文件会重算而非相信旧判定。
-真实硬件在线质检与真实卡弹尚未验证；10 秒为试运行阈值。
+当前 Windows 采集和在线质检已由用户实机确认可用；真实卡弹的识别能力并未因此获得额外验证；10 秒仍为试运行阈值。
 
 旧版目录：/home/robot/Documents/Codex/2026-11-01/esp32/outputs/CoreT-0.3.0-rc1/desktop/.before-qc-preview1
 完整备份：/home/robot/Documents/Codex/2026-11-03/codex-threads-01a1817e-57e6-7bd0-a897/outputs/desktop_qc_update_20261109/desktop-before-qc.tar.gz
