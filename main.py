@@ -19,7 +19,10 @@ def main():
     parser.add_argument('--data-dir',type=Path,help='Settings and default capture directory')
     parser.add_argument('--smoke-test',type=Path,help='Explicit PC-only GUI smoke test; write evidence and exit')
     parser.add_argument('--qc-replay-check',type=Path,help='Explicit offline QC package check; requires --open; never connects')
+    parser.add_argument('--learning-check',type=Path,help='Explicit isolated synthetic learning GUI check; never connects')
     args=parser.parse_args()
+    if args.learning_check and (args.open or args.data_dir or args.smoke_test or args.qc_replay_check):
+        parser.error('--learning-check cannot be combined with other check, open or data-dir options')
     if args.qc_replay_check and (not args.open or args.smoke_test):
         parser.error('--qc-replay-check requires --open and cannot be combined with --smoke-test')
     prepare_headless_fonts()
@@ -30,7 +33,7 @@ def main():
     resources=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent))
     app.setWindowIcon(QIcon(str(resources/'assets/coret.svg')))
     try:
-        data=args.data_dir or (args.qc_replay_check/'user-data' if args.qc_replay_check else args.smoke_test/'user-data' if args.smoke_test else default_data_directory())
+        data=args.data_dir or (args.learning_check/'user-data' if args.learning_check else args.qc_replay_check/'user-data' if args.qc_replay_check else args.smoke_test/'user-data' if args.smoke_test else default_data_directory())
         data=data.expanduser().resolve()
         logger=configure_logging(data)
     except OSError as e:
@@ -58,6 +61,10 @@ def main():
         from coret.qc_smoke import ReplayCheck
         qc_check=ReplayCheck(window,args.qc_replay_check)
         QTimer.singleShot(0,qc_check.start)
+    if args.learning_check:
+        from coret.learning_smoke import LearningCheck
+        learning_check=LearningCheck(window,args.learning_check)
+        QTimer.singleShot(0,learning_check.start)
     if args.smoke_test:
         from coret.smoke import SmokeTest
         smoke=SmokeTest(window,args.smoke_test)

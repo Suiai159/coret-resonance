@@ -1,7 +1,7 @@
 name: Windows desktop
 on:
   push:
-    branches: [main, windows]
+    branches: [main, windows, windows-learning]
   pull_request:
   workflow_dispatch:
 jobs:

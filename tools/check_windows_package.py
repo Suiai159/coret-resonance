@@ -72,9 +72,22 @@ def main():
                 and result['screenshot_saved'] and result['qc']['result'] == expected):
             raise AssertionError(result)
         replays[name] = result['qc']['result']
+    learning = out / '参考学习'
+    run('--learning-check', learning, timeout=180)
+    learned = json.loads((learning / 'learning-check.json').read_text(encoding='utf-8'))
+    if not learned['passed'] or not learned['candidate_only_until_activation'] or not learned['persisted']:
+        raise AssertionError(learned)
+    restart = out / '学习配置重启回放'
+    run('--open', learned['replay_capture'], '--data-dir', learning / 'user-data',
+        '--qc-replay-check', restart, timeout=60)
+    resumed = json.loads((restart / 'result.json').read_text(encoding='utf-8'))
+    if not (resumed['completed'] and resumed['no_device_connection']
+            and resumed['qc']['result'] == 'REFERENCE_PASS'
+            and resumed['qc']['reference_sha256'] == learned['reference_sha256']):
+        raise AssertionError(resumed)
     (out / 'package-check.json').write_text(json.dumps(
         dict(passed=True, unicode_relocation=True, gui_smoke=True, offline_qc=replays,
-             physical_serial_opened=False), ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+             learning=True, learned_profile_restart=True, physical_serial_opened=False), ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print('Package checks passed:', out)
 
 

@@ -15,10 +15,13 @@ class QCWorker(QObject):
         self.updated.emit(generation,{'result':'INVALID_DATA','reason':'QC_ANALYSIS_ERROR',
                                      'message':'质检计算失败，不能放行：'+str(error),'final':final})
 
-    @Slot(int)
-    def reset(self,generation):
+    @Slot(int,object)
+    def reset(self,generation,reference=None):
         self.generation=generation
-        try:self.engine=QCEngine()
+        try:
+            if isinstance(reference,dict) and '_load_error' in reference:
+                raise ValueError(reference['_load_error'])
+            self.engine=QCEngine(reference)
         except Exception as e:
             self.engine=None;self.failure(generation,e)
 
@@ -35,7 +38,7 @@ class QCWorker(QObject):
     def finish(self,generation,capture,replay):
         if generation!=self.generation:return
         try:
-            if replay:self.engine=QCEngine()
+            if replay and self.engine is not None:self.engine.reset()
             if self.engine is None:raise ValueError('质检配置未成功加载')
             self.updated.emit(generation,self.engine.finish(capture))
         except Exception as e:self.failure(generation,e,True)
