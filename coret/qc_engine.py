@@ -24,7 +24,7 @@ MAX_SAMPLES = 3000000
 def load_configuration():
     raw=(RESOURCES/'profile.json').read_bytes()
     profile=json.loads(raw);check_profile(profile)
-    config=ContinuousConfig(**json.loads((RESOURCES/'continuous.json').read_text()))
+    config=ContinuousConfig(**json.loads((RESOURCES/'continuous.json').read_text(encoding='utf-8')))
     return profile,config,hashlib.sha256(raw).hexdigest()
 
 

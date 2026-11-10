@@ -1,8 +1,9 @@
 """Small QPainter scope: raw storage stays intact; only paint points are reduced."""
 from bisect import bisect_left, bisect_right
 from .trace import Trace
+from .theme import plot_font
 from PySide6.QtCore import Qt, QRectF, QPointF, Signal
-from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
 
 
@@ -126,7 +127,7 @@ class Waveform(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.fillRect(self.rect(), QColor('#132735'))
         r = self.area()
-        font = QFont('DejaVu Sans Mono', 9)
+        font = plot_font(9, fixed=True)
         p.setFont(font)
         lo, hi = self.y_limits()
         span = max(1, self.xmax - self.xmin)
@@ -147,7 +148,7 @@ class Waveform(QWidget):
         p.drawText(QPointF(16, 18), 'RAW / uint16')
         p.drawText(QPointF(max(0, self.width()-92), self.height()-9), '时间 / s')
         if not self.values:
-            p.setFont(QFont('Noto Sans CJK SC', 12))
+            p.setFont(plot_font(12))
             p.setPen(QColor('#93acb9'))
             p.drawText(r, Qt.AlignmentFlag.AlignCenter, '连接数据源，然后点击「开始测量」\n也可以打开已保存的会话')
             return

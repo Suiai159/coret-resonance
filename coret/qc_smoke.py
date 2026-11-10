@@ -28,6 +28,6 @@ class ReplayCheck(QObject):
                 'window_title':w.windowTitle(),'status_text':w.qc_status.text(),'hint':w.qc_hint.text(),
                 'qc':w.qc_result}
         result['screenshot_saved']=w.grab().save(str(self.directory/'window.png'))
-        (self.directory/'result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+        (self.directory/'result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         self.exit_code=0 if ready and disconnected and w.replaying and result['screenshot_saved'] else 1
         w.dirty=False;w.begin_shutdown()

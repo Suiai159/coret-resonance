@@ -21,12 +21,13 @@ RANGES = [(0,'±12.288 V'),(1,'±10.240 V'),(2,'±6.144 V'),(3,'±5.120 V'),(4,'
           (8,'0–12.288 V'),(9,'0–10.240 V'),(10,'0–6.144 V'),(11,'0–5.120 V')]
 STYLE = '''
 QMainWindow,QWidget#root{background:#f2f5f8;color:#243746;}
-QWidget{font-family:"Noto Sans CJK SC";font-size:12px;color:#243746;}
+QWidget{font-family:"Microsoft YaHei UI","Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC";font-size:12px;color:#243746;}
 QWidget:disabled{color:#697c8a;}
 QDialog{background:#f2f5f8;}
 QToolTip{background:#fffbea;color:#243746;border:1px solid #cbd6df;}
 QMenuBar,QMenu,QToolBar{background:#fff;color:#243746;}
-QToolBar{border-bottom:1px solid #dce3ea;spacing:8px;padding:7px;}
+QToolBar{border-bottom:1px solid #dce3ea;spacing:5px;padding:7px;}
+QToolBar QToolButton{padding:7px 6px;}
 QToolButton{padding:7px 12px;border-radius:5px;}
 QToolButton:hover{background:#eaf0f6;}
 QGroupBox{background:#fff;border:1px solid #dce3ea;border-radius:7px;margin-top:12px;padding:16px 12px 12px;}
@@ -45,8 +46,8 @@ QLabel#badge{background:#e4eee9;color:#236b61;border-radius:4px;padding:6px 12px
 QLabel#notice{background:#e9f1f6;color:#3b586c;border:1px solid #d5e3ed;border-radius:5px;padding:6px 9px;}
 QLabel#notice[warning="true"]{background:#fff0ed;color:#a53326;border-color:#e4b0a7;}
 QFrame#metric{background:#fff;border:1px solid #dce3ea;border-radius:6px;}
-QLabel#metricValue{font-family:"DejaVu Sans Mono";font-size:23px;font-weight:bold;color:#213e52;}
-QPlainTextEdit{background:#fff;color:#425b6a;border:1px solid #dce3ea;border-radius:4px;font-family:"DejaVu Sans Mono";font-size:11px;}
+QLabel#metricValue{font-family:"Consolas","DejaVu Sans Mono",monospace;font-size:23px;font-weight:bold;color:#213e52;}
+QPlainTextEdit{background:#fff;color:#425b6a;border:1px solid #dce3ea;border-radius:4px;font-family:"Consolas","DejaVu Sans Mono",monospace;font-size:11px;}
 QTabWidget::pane{border:1px solid #dce3ea;background:#fff;border-radius:4px;}
 QTabBar::tab{padding:7px 16px;background:#e7edf2;color:#5c6e7e;}
 QTabBar::tab:selected{background:#fff;color:#167c72;}
@@ -618,7 +619,7 @@ class MainWindow(QMainWindow):
         try:
             p=self.data_dir/'settings.json'
             if not p.exists() or p.stat().st_size>8192: return
-            s=json.loads(p.read_text())
+            s=json.loads(p.read_text(encoding='utf-8'))
             if not isinstance(s,dict): return
             idx = self.duration.findData(s.get('duration'))
             if idx >= 0: self.duration.setCurrentIndex(idx)

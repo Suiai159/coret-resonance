@@ -5,7 +5,7 @@ __pycache__/
 .venv/
 venv/
 
-# Packaged application and build outputs (rebuild with build-linux.sh)
+# Packaged application and build outputs (rebuild with build-linux.sh or build-windows.bat)
 /CoreT-Desktop
 /_internal/
 /.packaging/
@@ -31,3 +31,7 @@ venv/
 /.codex/
 .env
 .env.*
+
+# Local Windows executables / archives
+/CoreT-Desktop.exe
+/CoreT-Desktop-Windows-x64.zip

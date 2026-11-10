@@ -3,6 +3,7 @@ from collections import deque
 from datetime import datetime
 import json
 import math
+import os
 from pathlib import Path
 import queue
 import struct
@@ -110,12 +111,20 @@ class Controller:
                 device = args.get('port', '')
                 if device not in {p['device'] for p in ports()}:
                     raise ValueError('请选择当前枚举到的 USB 串口')
+                # POSIX flock is not a Windows serial option. Win32 CreateFile
+                # already opens COM ports without sharing (including COM10+).
+                options = {'exclusive': True} if os.name == 'posix' else {}
                 port = serial.Serial(port=None, baudrate=115200, timeout=0,
-                                     write_timeout=0.2, exclusive=True)
-                port.dtr = False
-                port.rts = False
-                port.port = device
-                port.open()
+                                     write_timeout=0.2, **options)
+                try:
+                    # Set before open: avoid intentionally toggling reset lines.
+                    port.dtr = False
+                    port.rts = False
+                    port.port = device
+                    port.open()
+                except Exception:
+                    port.close()
+                    raise
             else:
                 raise ValueError('未知数据源')
             self._reset_run()
@@ -382,10 +391,10 @@ class Controller:
         with self.lock:
             result = self.snapshot()
             result.pop('points')
-            prefix.with_suffix('.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
+            prefix.with_suffix('.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n',encoding='utf-8')
             prefix.with_suffix('.rx.bin').write_bytes(self.rx)
             prefix.with_suffix('.tx.bin').write_bytes(self.tx)
-            prefix.with_suffix('.csv').write_text(self.csv())
+            prefix.with_suffix('.csv').write_text(self.csv(),encoding='utf-8')
             return result
 
     def close(self):

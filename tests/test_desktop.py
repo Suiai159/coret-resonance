@@ -9,6 +9,8 @@ import unittest
 from unittest.mock import patch
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from coret.runtime import prepare_headless_fonts
+prepare_headless_fonts()
 from PySide6.QtWidgets import QApplication, QMessageBox, QGroupBox
 from coret.storage import SCHEMA, load_capture, save_capture, export_csv
 from coret.plot import envelope

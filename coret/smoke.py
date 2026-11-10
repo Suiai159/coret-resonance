@@ -77,7 +77,7 @@ class SmokeTest(QObject):
                 w.save_to(self.out/'desktop-sine.coret')
                 export_csv(self.out/'desktop-sine.csv',capture)
                 assert load_capture(self.out/'desktop-sine.coret')==capture
-                rows=(self.out/'desktop-sine.csv').read_text().splitlines()
+                rows=(self.out/'desktop-sine.csv').read_text(encoding='utf-8').splitlines()
                 assert len(rows)==len(capture['values'])+1
                 assert w.grab().save(str(self.out/'desktop-sine.png'))
                 self.report={'passed':True,'presets':self.runs,'max_live_gui_tick_gap_s':self.max_live_tick_gap,'samples':len(capture['values']),'sine_mismatches':0,
@@ -147,14 +147,14 @@ class SmokeTest(QObject):
                 assert (w.sidebar.isVisible(),w.diagnostics.isVisible())==self.pre_fullscreen
                 w.log_action.trigger(); w.settings_action.trigger(); w.maximize_action.trigger()
                 self.report.update(maximize_restore=True,fullscreen_escape=True,panel_restore=True)
-                (self.out/'gui-smoke.json').write_text(json.dumps(self.report,ensure_ascii=False,indent=2)+'\n')
+                (self.out/'gui-smoke.json').write_text(json.dumps(self.report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
                 print(json.dumps(self.report,ensure_ascii=False),flush=True)
                 w.begin_shutdown(); self.stage=7
             elif self.stage==7 and not w.thread.isRunning():
                 self.timer.stop()
         except Exception as e:
             self.timer.stop(); self.failed=True
-            (self.out/'gui-smoke.json').write_text(json.dumps({'passed':False,'stage':self.stage,'error':repr(e),'traceback':traceback.format_exc(),'runs':self.runs,'max_live_gui_tick_gap_s':self.max_live_tick_gap,'state_phase':w.state.get('phase'),'capture_metadata':w.capture.get('metadata') if w.capture else None},indent=2))
+            (self.out/'gui-smoke.json').write_text(json.dumps({'passed':False,'stage':self.stage,'error':repr(e),'traceback':traceback.format_exc(),'runs':self.runs,'max_live_gui_tick_gap_s':self.max_live_tick_gap,'state_phase':w.state.get('phase'),'capture_metadata':w.capture.get('metadata') if w.capture else None},indent=2),encoding='utf-8')
             print('GUI SMOKE FAILED:',repr(e),flush=True)
             w.thread.finished.connect(lambda:QApplication.exit(1))
             w.begin_shutdown()

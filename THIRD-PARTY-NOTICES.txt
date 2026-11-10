@@ -35,3 +35,13 @@ This software also uses the platform libraries collected by PyInstaller and the 
 
 QC update: NumPy 1.26.4 and SciPy 1.15.3 (BSD licenses and bundled dependency notices).
 See licenses/NUMPY-LICENSE.txt and licenses/SCIPY-LICENSE.txt.
+
+Windows test distribution
+The Windows build does not include vendor/libxcb-cursor.so.0 or the Linux desktop stack.
+It uses the same pinned PySide6/Qt, pyserial, NumPy and SciPy runtime packages on Windows.
+The Python runtime and actual build-tool versions are recorded in build-environment.txt
+in each generated package, rather than the historical Linux prototype versions above.
+Qt/PySide and other collected shared libraries remain replaceable in _internal/.
+Windows rebuild instructions and corresponding application sources are supplied in
+README-Windows.md and source/. No new license for the user's application is implied.
+This unsigned test build is not a completed public-release license compliance audit.

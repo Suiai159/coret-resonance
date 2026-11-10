@@ -12,6 +12,8 @@ from unittest.mock import patch
 os.environ.setdefault('QT_QPA_PLATFORM','offscreen')
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import numpy as np
+from coret.runtime import prepare_headless_fonts
+prepare_headless_fonts()
 from PySide6.QtWidgets import QApplication
 from coret.qc_engine import QCEngine
 from coret.storage import save_capture, load_capture

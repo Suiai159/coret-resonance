@@ -332,8 +332,8 @@ def evaluate(features,profile):
 
 def save_profile(profile,path):
     check_profile(profile)
-    Path(path).write_text(json.dumps(profile,ensure_ascii=False,indent=2,allow_nan=False)+'\n')
+    Path(path).write_text(json.dumps(profile,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
 
 
 def load_profile(path):
-    profile=json.loads(Path(path).read_text());check_profile(profile);return profile
+    profile=json.loads(Path(path).read_text(encoding='utf-8'));check_profile(profile);return profile

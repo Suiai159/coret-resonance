@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Native launcher. No web server, no automatic device connection."""
 import argparse
-import os
 from pathlib import Path
 import sys
 from PySide6.QtCore import QTimer
@@ -9,6 +8,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 from coret import __version__
 from coret.theme import apply_theme
+from coret.runtime import configure_logging, default_data_directory, prepare_headless_fonts
 from coret.window import MainWindow
 
 
@@ -22,18 +22,31 @@ def main():
     args=parser.parse_args()
     if args.qc_replay_check and (not args.open or args.smoke_test):
         parser.error('--qc-replay-check requires --open and cannot be combined with --smoke-test')
+    prepare_headless_fonts()
     app=QApplication([sys.argv[0]])
     app.setApplicationName('CoreT Desktop'); app.setApplicationVersion(__version__)
     app.setOrganizationName('CoreT')
     apply_theme(app)
     resources=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent))
     app.setWindowIcon(QIcon(str(resources/'assets/coret.svg')))
-    base=Path(sys.executable).resolve().parent if getattr(sys,'frozen',False) else Path(__file__).resolve().parent
-    data=args.data_dir or (args.qc_replay_check/'user-data' if args.qc_replay_check else args.smoke_test/'user-data' if args.smoke_test else base/'user-data')
     try:
-        window=MainWindow(data)
+        data=args.data_dir or (args.qc_replay_check/'user-data' if args.qc_replay_check else args.smoke_test/'user-data' if args.smoke_test else default_data_directory())
+        data=data.expanduser().resolve()
+        logger=configure_logging(data)
     except OSError as e:
         QMessageBox.critical(None,'无法启动','无法写入数据目录，请使用 --data-dir 指定可写路径。\n'+str(e))
+        return 1
+    logger.info('Starting CoreT %s on %s; frozen=%s; data=%s', __version__, sys.platform, getattr(sys,'frozen',False), data)
+
+    def report_exception(kind, value, tb):
+        logger.error('Unhandled application exception', exc_info=(kind, value, tb))
+        QMessageBox.critical(None,'运行异常',str(value)+'\n\n诊断日志：'+str(data/'runtime.log'))
+    sys.excepthook=report_exception
+    try:
+        window=MainWindow(data)
+    except Exception as e:
+        logger.exception('Startup failed')
+        QMessageBox.critical(None,'无法启动',str(e)+'\n\n诊断日志：'+str(data/'runtime.log'))
         return 1
     window.show()
     if args.open:

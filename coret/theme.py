@@ -3,12 +3,14 @@
 Fusion selects widget geometry, not a light color scheme. Never combine its
 inherited system text colors with the window's fixed white backgrounds.
 """
+from .runtime import register_headless_cjk_font
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtGui import QColor, QFont, QFontDatabase, QPalette
 
 
 def apply_theme(app):
     """Apply before constructing any widgets; leave the OS theme unchanged."""
+    register_headless_cjk_font()
     app.setStyle('Fusion')
     app.styleHints().setColorScheme(Qt.ColorScheme.Light)
     palette = QPalette()
@@ -38,3 +40,15 @@ def apply_theme(app):
     palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.HighlightedText,
                      QColor('#425b6a'))
     app.setPalette(palette)
+
+
+def plot_font(size, *, fixed=False):
+    """Prefer installed CJK fonts; don't depend on Linux-only font packages."""
+    available = set(QFontDatabase.families())
+    preferred = ('Consolas', 'DejaVu Sans Mono', 'Courier New') if fixed else (
+        'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'WenQuanYi Micro Hei')
+    family = next((name for name in preferred if name in available), None)
+    fallback = QFontDatabase.SystemFont.FixedFont if fixed else QFontDatabase.SystemFont.GeneralFont
+    font = QFont(family) if family else QFontDatabase.systemFont(fallback)
+    font.setPointSize(size)
+    return font
